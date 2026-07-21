@@ -1,9 +1,24 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Briefcase } from 'lucide-react';
-import './Sidebar.css';
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut,
+  Briefcase,
+} from "lucide-react";
+import "./Sidebar.css";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -12,22 +27,41 @@ const Sidebar = () => {
       </div>
 
       <nav className="nav-menu">
-        <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} end>
+        <NavLink
+          to="/"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          end
+        >
           <LayoutDashboard className="nav-icon" size={20} />
           <span>Dashboard</span>
         </NavLink>
-        <NavLink to="/employees" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink
+          to="/employees"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <Users className="nav-icon" size={20} />
           <span>Employees</span>
         </NavLink>
-        <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <Settings className="nav-icon" size={20} />
           <span>Settings</span>
         </NavLink>
       </nav>
 
       <div className="sidebar-footer">
-        <button className="nav-item" style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer' }}>
+        <button
+          className="nav-item"
+          style={{
+            background: "transparent",
+            border: "none",
+            width: "100%",
+            cursor: "pointer",
+          }}
+          onClick={handleLogout}
+        >
           <LogOut className="nav-icon" size={20} />
           <span>Logout</span>
         </button>

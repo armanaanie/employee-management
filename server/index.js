@@ -132,7 +132,7 @@ app.post("/api/employees", authenticate, async (req, res) => {
     res.status(201).json(savedEmployee);
   } catch (error) {
     console.error("Error adding employee:", error);
-    res.status(500).json({ error: "Failed to add employee" });
+    res.status(500).json({ error: "Failed to add employee", details: error.message });
   }
 });
 

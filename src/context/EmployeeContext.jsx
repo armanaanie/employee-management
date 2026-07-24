@@ -56,8 +56,13 @@ export const EmployeeProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         setEmployees([...employees, data]);
+      } else {
+        const errData = await response.json();
+        alert(`Failed to add employee: ${errData.error} - ${errData.details || ''}`);
+        console.error("Server returned error:", errData);
       }
     } catch (error) {
+      alert("Network error: Failed to add employee");
       console.error("Failed to add employee", error);
     }
   };

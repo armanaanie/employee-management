@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LogIn } from "lucide-react";
+import PasswordInput from "../components/PasswordInput";
 import "../index.css";
 
 const LoginPage = () => {
@@ -36,7 +37,7 @@ const LoginPage = () => {
         style={{ width: "100%", maxWidth: "400px", padding: "2rem" }}
       >
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div
+          {/* <div
             style={{
               display: "inline-flex",
               padding: "1rem",
@@ -46,7 +47,7 @@ const LoginPage = () => {
             }}
           >
             <LogIn size={32} color="var(--primary)" />
-          </div>
+          </div> */}
           <h2 style={{ fontSize: "1.5rem", fontWeight: "600" }}>Admin Login</h2>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
             Sign in to manage employees
@@ -86,8 +87,7 @@ const LoginPage = () => {
 
           <div className="form-group">
             <label>Password</label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-control"
@@ -109,15 +109,28 @@ const LoginPage = () => {
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
         </form>
-        <p
+        <div
           style={{
             color: "var(--text-secondary)",
             textAlign: "center",
             marginTop: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
           }}
         >
-          Don't have an account? <Link to="/register">Sign up</Link>
-        </p>
+          <p style={{ margin: 0 }}>Only approved admin accounts can sign in.</p>
+          <Link
+            to="/register"
+            style={{
+              color: "var(--primary)",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            Register admin account
+          </Link>
+        </div>
       </div>
     </div>
   );

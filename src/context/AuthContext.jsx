@@ -54,7 +54,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         setToken(data.token);
-        setUser({ username: data.username, email: data.email });
+        setUser({
+          username: data.username,
+          email: data.email,
+          role: data.role,
+        });
         return true;
       } else {
         setLoginError(data.error || "Login failed");
@@ -67,20 +71,55 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password) => {
+  const updateUser = (updatedUser) => {
+    setUser((prev) => ({ ...(prev || {}), ...updatedUser }));
+  };
+
+  const updateAuthSession = (updatedData) => {
+    if (updatedData?.token) {
+      setToken(updatedData.token);
+    }
+
+    if (updatedData?.user) {
+      setUser((prev) => ({ ...(prev || {}), ...updatedData.user }));
+    }
+  };
+
+  const register = async (
+    username,
+    email,
+    password,
+    role = "employee",
+    adminAccessCode = "",
+  ) => {
     setRegisterError(null);
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        headers,
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          role,
+          adminAccessCode,
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setToken(data.token);
-        setUser({ username: data.username, email: data.email });
+        setUser({
+          username: data.username,
+          email: data.email,
+          role: data.role,
+        });
         return true;
       } else {
         setRegisterError(data.error || "Registration failed");
@@ -107,6 +146,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         loginError,
         register,
+        updateUser,
+        updateAuthSession,
         registerError,
       }}
     >

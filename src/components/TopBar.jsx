@@ -13,7 +13,7 @@ const TopBar = () => {
     if (location.pathname.startsWith("/employees/new")) return "Add Employee";
     if (location.pathname.startsWith("/employees/edit")) return "Edit Employee";
     if (location.pathname.startsWith("/employees")) return "Employee Directory";
-    if (location.pathname.startsWith("/settings")) return "Settings";
+    if (location.pathname.startsWith("/profile")) return "My Profile";
     return "";
   };
 
@@ -25,25 +25,7 @@ const TopBar = () => {
           Welcome back, {user?.username || "Admin"}
         </span>
       </div>
-      <div className="topbar-actions">
-        <div className="search-bar glass-panel">
-          <Search size={18} className="search-icon" />
-          <input type="text" placeholder="Search..." className="search-input" />
-        </div>
-
-        <button className="btn-icon notification-btn">
-          <Bell size={20} />
-          <span className="notification-dot"></span>
-        </button>
-
-        <div className="user-profile">
-          <img
-            src="https://i.pravatar.cc/150?u=admin"
-            alt="Admin"
-            className="avatar"
-          />
-        </div>
-      </div>
+      <div className="topbar-actions"></div>
     </header>
   );
 };

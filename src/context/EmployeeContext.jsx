@@ -1,11 +1,9 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
 
 const EmployeeContext = createContext();
 
-export const useEmployees = () => {
-  return useContext(EmployeeContext);
-};
+export const useEmployees = () => useContext(EmployeeContext);
 
 export const EmployeeProvider = ({ children }) => {
   const [employees, setEmployees] = useState([]);
@@ -25,6 +23,7 @@ export const EmployeeProvider = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (response.ok) {
           const data = await response.json();
           setEmployees(data);
@@ -33,17 +32,24 @@ export const EmployeeProvider = ({ children }) => {
         console.error("Failed to fetch employees", error);
       }
     };
+
     fetchEmployees();
+    
+    // Poll every 5 seconds to keep data fresh across clients
+    const intervalId = setInterval(fetchEmployees, 5000);
+
+    return () => clearInterval(intervalId);
   }, [isAuthenticated, token]);
 
   const addEmployee = async (employee) => {
-    if (!token) return;
+    if (!token) return false;
 
     const newEmployee = {
       ...employee,
       id: Date.now().toString(),
-      avatar: `https://i.pravatar.cc/150?u=${employee.name.replace(/\s/g, "")}`,
+      avatar: employee.avatar || "",
     };
+
     try {
       const response = await fetch("/api/employees", {
         method: "POST",
@@ -53,25 +59,27 @@ export const EmployeeProvider = ({ children }) => {
         },
         body: JSON.stringify(newEmployee),
       });
+
       if (response.ok) {
         const data = await response.json();
-        setEmployees([...employees, data]);
-      } else {
-        const errData = await response.json();
-        alert(`Failed to add employee: ${errData.error} - ${errData.details || ''}`);
-        console.error("Server returned error:", errData);
+        setEmployees((prev) => [...prev, data]);
+        return true;
       }
+
+      const errData = await response.json();
+      alert(`Failed to add employee: ${errData.error || "Unknown error"}`);
+      console.error(errData);
+      return false;
     } catch (error) {
       alert("Network error: Failed to add employee");
-      console.error("Failed to add employee", error);
+      console.error(error);
+      return false;
     }
   };
 
   const updateEmployee = async (id, updatedData) => {
-    const employeeToUpdate = employees.find((emp) => emp.id === id);
-    if (!employeeToUpdate) return;
+    if (!token) return false;
 
-    const newEmployeeData = { ...employeeToUpdate, ...updatedData };
     try {
       const response = await fetch(`/api/employees/${id}`, {
         method: "PUT",
@@ -79,14 +87,22 @@ export const EmployeeProvider = ({ children }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newEmployeeData),
+        body: JSON.stringify(updatedData),
       });
+
       if (response.ok) {
         const data = await response.json();
-        setEmployees(employees.map((emp) => (emp.id === id ? data : emp)));
+        setEmployees((prev) => prev.map((emp) => (emp.id === id ? data : emp)));
+        return true;
       }
+
+      const errData = await response.json();
+      alert(`Failed to update employee: ${errData.error || "Unknown error"}`);
+      console.error(errData);
+      return false;
     } catch (error) {
       console.error("Failed to update employee", error);
+      return false;
     }
   };
 
@@ -100,22 +116,22 @@ export const EmployeeProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
+
       if (response.ok) {
-        setEmployees(employees.filter((emp) => emp.id !== id));
+        setEmployees((prev) => prev.filter((emp) => emp.id !== id));
       }
     } catch (error) {
       console.error("Failed to delete employee", error);
     }
   };
 
-  const getEmployee = (id) => {
-    return employees.find((emp) => emp.id === id);
-  };
+  const getEmployee = (id) => employees.find((emp) => emp.id === id);
 
   const getStats = () => {
     const total = employees.length;
     const active = employees.filter((emp) => emp.status === "Active").length;
     const departments = new Set(employees.map((emp) => emp.department)).size;
+
     return { total, active, departments };
   };
 

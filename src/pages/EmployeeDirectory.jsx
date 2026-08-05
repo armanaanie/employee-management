@@ -25,10 +25,10 @@ const EmployeeDirectory = () => {
   return (
     <div className="employee-directory animate-fade-in">
       <div className="page-header">
-        <div>
+        {/* <div>
           <h1>Employee Directory</h1>
           <p className="subtitle">Manage your team members and their information.</p>
-        </div>
+        </div> */}
         <Link to="/employees/new" className="btn btn-primary">
           <UserPlus size={18} />
           Add Employee

@@ -8,11 +8,16 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { EmployeeProvider } from "./context/EmployeeContext";
+import { LeaveProvider } from "./context/LeaveContext";
+import { AttendanceProvider } from "./context/AttendanceContext";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Dashboard from "./pages/Dashboard";
 import EmployeeDirectory from "./pages/EmployeeDirectory";
 import EmployeeForm from "./pages/EmployeeForm";
+import EmployeeProfile from "./pages/EmployeeProfile";
+import LeaveManagement from "./pages/LeaveManagement";
+import AttendanceHistory from "./pages/AttendanceHistory";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 
@@ -52,12 +57,7 @@ const AppRoutes = () => {
             isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
           }
         />
-        <Route
-          path="/register"
-          element={
-            isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
-          }
-        />
+        <Route path="/register" element={<RegisterPage />} />
         <Route
           path="/"
           element={
@@ -91,15 +91,26 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/settings"
+          path="/profile"
           element={
             <ProtectedRoute>
-              <div
-                className="glass-panel"
-                style={{ padding: "3rem", textAlign: "center" }}
-              >
-                <h2>Settings Page (Coming Soon)</h2>
-              </div>
+              <EmployeeProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaves"
+          element={
+            <ProtectedRoute>
+              <LeaveManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance"
+          element={
+            <ProtectedRoute>
+              <AttendanceHistory />
             </ProtectedRoute>
           }
         />
@@ -113,9 +124,13 @@ function App() {
   return (
     <AuthProvider>
       <EmployeeProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <LeaveProvider>
+          <AttendanceProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </AttendanceProvider>
+        </LeaveProvider>
       </EmployeeProvider>
     </AuthProvider>
   );

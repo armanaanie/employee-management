@@ -2,173 +2,182 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { UserPlus } from "lucide-react";
+import PasswordInput from "../components/PasswordInput";
 import "../index.css";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("employee");
+  const [adminAccessCode, setAdminAccessCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState("error");
   const { register, registerError } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMessage("");
+    setFeedbackMessage("");
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+    if (!gmailRegex.test(email)) {
+      setFeedbackMessage("Please enter a valid Gmail address.");
+      setFeedbackType("error");
+      return;
+    }
 
     if (password !== confirmPassword) {
-      setSuccessMessage("Passwords do not match.");
+      setFeedbackMessage("Passwords do not match.");
+      setFeedbackType("error");
       return;
     }
 
     setIsSubmitting(true);
-    const success = await register(username, email, password);
+    const success = await register(
+      username,
+      email,
+      password,
+      role,
+      adminAccessCode,
+    );
     setIsSubmitting(false);
 
     if (success) {
+      setFeedbackMessage("Account created successfully.");
+      setFeedbackType("success");
       navigate("/");
     }
   };
 
   return (
-    <div
-      className="app-container"
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div
-        className="glass-panel"
-        style={{ width: "100%", maxWidth: "420px", padding: "2rem" }}
-      >
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              padding: "1rem",
-              borderRadius: "50%",
-              background: "rgba(255, 255, 255, 0.1)",
-              marginBottom: "1rem",
-            }}
-          >
-            <UserPlus size={32} color="var(--primary)" />
+    <div className="auth-page">
+      <div className="auth-card glass-panel">
+        <div className="auth-card__header">
+          <div className="auth-icon">
+            <UserPlus size={30} />
           </div>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "600" }}>
-            Create Account
-          </h2>
-          <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-            Register a new admin account
-          </p>
+          <h2>Create your account</h2>
+          <p>Anyone can sign up. Admin access requires a valid access code.</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
-        >
-          {registerError && (
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {(registerError || feedbackMessage) && (
             <div
-              style={{
-                padding: "0.75rem",
-                borderRadius: "8px",
-                background: "rgba(239, 68, 68, 0.1)",
-                color: "#ef4444",
-                fontSize: "0.875rem",
-                textAlign: "center",
-              }}
+              className={`auth-alert ${feedbackType === "error" ? "auth-alert--error" : "auth-alert--success"}`}
             >
-              {registerError}
-            </div>
-          )}
-
-          {successMessage && (
-            <div
-              style={{
-                padding: "0.75rem",
-                borderRadius: "8px",
-                background: "rgba(34, 197, 94, 0.12)",
-                color: "#22c55e",
-                fontSize: "0.875rem",
-                textAlign: "center",
-              }}
-            >
-              {successMessage}
+              {registerError || feedbackMessage}
             </div>
           )}
 
           <div className="form-group">
-            <label>Username</label>
+            <label className="form-label">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="form-control"
               placeholder="Enter username"
+              autoComplete="username"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label className="form-label">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="form-control"
-              placeholder="Enter email"
+              placeholder="Enter Gmail address"
+              pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+              title="Please enter a valid Gmail address"
+              autoComplete="email"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
+            <label className="form-label">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="form-control"
+              required
+            >
+              <option value="employee">Employee</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="form-control"
+              required
+            >
+              <option value="employee">Employee</option>
+              <option value="admin">Admin</option>
+            </select>
+            <small
+              style={{ color: "var(--text-secondary)", marginTop: "0.35rem" }}
+            >
+              Enter the admin access code below if you want to create an admin
+              account.
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Admin Access Code</label>
+            <PasswordInput
+              value={adminAccessCode}
+              onChange={(e) => setAdminAccessCode(e.target.value)}
+              className="form-control"
+              placeholder="Optional for admin signup"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-control"
               placeholder="Enter password"
+              autoComplete="new-password"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Confirm Password</label>
-            <input
-              type="password"
+            <label className="form-label">Confirm Password</label>
+            <PasswordInput
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="form-control"
               placeholder="Confirm password"
+              autoComplete="new-password"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary auth-submit"
             disabled={isSubmitting}
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              marginTop: "1rem",
-            }}
           >
             {isSubmitting ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            textAlign: "center",
-            marginTop: "1.5rem",
-          }}
-        >
-          Already have an account? <Link to="/login">Sign in</Link>
+        <p className="auth-link-row">
+          Already have access? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>

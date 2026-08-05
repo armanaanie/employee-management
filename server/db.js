@@ -2,25 +2,43 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 
-dotenv.config();
+const isProduction = process.env.NODE_ENV === "production";
+if (!isProduction) {
+  dotenv.config();
+}
 
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/employee-management";
+
+let connectPromise = null;
 
 // ==============================
 // Connect to MongoDB
 // ==============================
 export const connectDB = async () => {
-  try {
-    await mongoose.connect(MONGODB_URI);
-
-    console.log("✅ MongoDB connected successfully");
-
-    await seedAdmin();
-  } catch (error) {
-    console.error("❌ MongoDB connection failed:", error);
-    process.exit(1);
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
+
+  if (mongoose.connection.readyState === 2) {
+    if (connectPromise) return connectPromise;
+  }
+
+  console.log("Connecting to MongoDB at", MONGODB_URI);
+
+  connectPromise = mongoose
+    .connect(MONGODB_URI)
+    .then(async () => {
+      console.log("✅ MongoDB connected successfully");
+      await seedAdmin();
+    })
+    .catch((error) => {
+      console.error("❌ MongoDB connection failed:", error);
+      connectPromise = null;
+      throw error;
+    });
+
+  return connectPromise;
 };
 
 // ==============================
@@ -84,7 +102,7 @@ const employeeSchema = new mongoose.Schema(
   },
 );
 
-export const Employee = mongoose.model("Employee", employeeSchema);
+export const Employee = mongoose.models.Employee || mongoose.model("Employee", employeeSchema);
 
 // ==============================
 // Admin Schema
@@ -111,6 +129,17 @@ const adminSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+
+    role: {
+      type: String,
+      enum: ["admin", "employee"],
+      default: "employee",
+    },
+
+    avatar: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
@@ -125,25 +154,39 @@ const adminSchema = new mongoose.Schema(
   },
 );
 
-export const Admin = mongoose.model("Admin", adminSchema);
+export const Admin = mongoose.models.Admin || mongoose.model("Admin", adminSchema);
 
 // ==============================
 // Seed Default Admin
 // ==============================
 const seedAdmin = async () => {
   try {
-    const adminExists = await Admin.findOne({
-      username: "admin",
+    const existingAdmin = await Admin.findOne({
+      $or: [{ username: "admin" }, { email: "admin@gmail.com" }],
     });
 
-    if (adminExists) return;
+    if (existingAdmin) {
+      const needsUpdate =
+        existingAdmin.role !== "admin" ||
+        existingAdmin.username !== "admin" ||
+        existingAdmin.email !== "admin@gmail.com";
 
-    const hashedPassword = await bcrypt.hash("password123", 10);
+      if (needsUpdate) {
+        existingAdmin.username = "admin";
+        existingAdmin.email = "admin@gmail.com";
+        existingAdmin.role = "admin";
+        await existingAdmin.save();
+      }
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash("Password123!", 10);
 
     await Admin.create({
       username: "admin",
-      email: "admin@example.com",
+      email: "admin@gmail.com",
       password: hashedPassword,
+      role: "admin",
     });
 
     console.log(`
@@ -151,8 +194,8 @@ const seedAdmin = async () => {
 Default Admin Created Successfully
 
 Username : admin
-Email    : admin@example.com
-Password : password123
+Email    : admin@gmail.com
+Password : Password123!
 ==========================================
 `);
   } catch (error) {

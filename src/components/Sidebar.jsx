@@ -4,15 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import {
   LayoutDashboard,
   Users,
-  Settings,
   LogOut,
   Briefcase,
+  UserCircle,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const handleLogout = () => {
     logout();
@@ -35,19 +38,35 @@ const Sidebar = () => {
           <LayoutDashboard className="nav-icon" size={20} />
           <span>Dashboard</span>
         </NavLink>
+        {isAdmin && (
+          <NavLink
+            to="/employees"
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          >
+            <Users className="nav-icon" size={20} />
+            <span>Employees</span>
+          </NavLink>
+        )}
         <NavLink
-          to="/employees"
+          to="/leaves"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
-          <Users className="nav-icon" size={20} />
-          <span>Employees</span>
+          <Calendar className="nav-icon" size={20} />
+          <span>Leave Management</span>
         </NavLink>
         <NavLink
-          to="/settings"
+          to="/attendance"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
-          <Settings className="nav-icon" size={20} />
-          <span>Settings</span>
+          <Clock className="nav-icon" size={20} />
+          <span>Attendance</span>
+        </NavLink>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
+          <UserCircle className="nav-icon" size={20} />
+          <span>My Profile</span>
         </NavLink>
       </nav>
 

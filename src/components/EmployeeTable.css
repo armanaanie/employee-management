@@ -1,5 +1,6 @@
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 16px;
   padding: 1rem 0;
 }
@@ -8,6 +9,7 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  white-space: nowrap;
 }
 
 .employee-table th {
